@@ -1,6 +1,8 @@
 package com.study.springstudy.service;
 
+import com.study.springstudy.domain.Order;
 import com.study.springstudy.domain.User;
+import com.study.springstudy.dto.OrderResponse;
 import com.study.springstudy.dto.UserCreateRequest;
 import com.study.springstudy.dto.UserResponse;
 import com.study.springstudy.dto.UserUpdateRequest;
@@ -120,6 +122,24 @@ public class UserService {
                 savedUser.getName(),
                 savedUser.getAge()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getUserOrders (Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(UserNotFoundException::new);
+
+        List<Order> orders = user.getOrders();
+
+        return orders.stream()
+                .map(order -> new OrderResponse(
+                        order.getId(),
+                        order.getProductName(),
+                        order.getPrice(),
+                        order.getUser().getId(),
+                        order.getUser().getName()
+                ))
+                .toList();
     }
 
     @Transactional

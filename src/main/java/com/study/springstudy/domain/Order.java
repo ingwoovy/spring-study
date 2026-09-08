@@ -3,6 +3,10 @@ package com.study.springstudy.domain;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 @Entity
 @Table(name = "user_orders")
 public class Order {
@@ -35,5 +39,9 @@ public class Order {
     }
     public User getUser() {
         return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

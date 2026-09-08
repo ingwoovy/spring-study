@@ -1,5 +1,6 @@
 package com.study.springstudy.controller;
 
+import com.study.springstudy.dto.OrderResponse;
 import com.study.springstudy.dto.UserCreateRequest;
 import com.study.springstudy.dto.UserResponse;
 import com.study.springstudy.dto.UserUpdateRequest;
@@ -59,6 +60,11 @@ public class UserController {
             @RequestParam Integer minAge
     ) {
         return userService.getUserByNameAndMinAge(name, minAge);
+    }
+
+    @GetMapping("/users/{id}/orders")
+    public List<OrderResponse> getUserOrders (@PathVariable Long id) {
+        return userService.getUserOrders(id);
     }
 
     @PostMapping("/users")

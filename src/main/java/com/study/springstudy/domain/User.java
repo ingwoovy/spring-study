@@ -1,10 +1,9 @@
 package com.study.springstudy.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -16,6 +15,10 @@ public class User {
 
     private String name;
     private int age;
+
+    @OneToMany(mappedBy = "user")
+    private List<Order> orders = new ArrayList<>();
+
 
     protected User () {}
     public User (Long id, String name, Integer age) {
@@ -34,6 +37,10 @@ public class User {
         return age;
     }
 
+    public List<Order> getOrders() {
+        return orders;
+    }
+
     public void update(String name, Integer age) {
         if (name != null) {
             this.name = name;
@@ -42,5 +49,10 @@ public class User {
         if (age != null) {
             this.age = age;
         }
+    }
+
+    public void addOrder (Order order) {
+        orders.add(order);
+        order.setUser(this);
     }
 }

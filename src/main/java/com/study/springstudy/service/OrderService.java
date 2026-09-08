@@ -32,8 +32,10 @@ public class OrderService {
                 null,
                 request.getProductName(),
                 request.getPrice(),
-                user
+                null
         );
+
+        user.addOrder(order);
         Order savedOrder = orderRepository.save(order);
 
         return new OrderResponse(
