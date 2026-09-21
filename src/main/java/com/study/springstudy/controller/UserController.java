@@ -93,4 +93,13 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/users/{userId}/orders/{orderId}")
+    public ResponseEntity<Void> removeUserOrder(
+            @PathVariable Long userId,
+            @PathVariable Long orderId
+    ) {
+        userService.removeUserOrder(userId,orderId);
+        return ResponseEntity.noContent().build();
+    }
 }

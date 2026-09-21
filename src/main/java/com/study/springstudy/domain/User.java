@@ -16,7 +16,11 @@ public class User {
     private String name;
     private int age;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.PERSIST,
+            orphanRemoval = true
+    )
     private List<Order> orders = new ArrayList<>();
 
 
@@ -54,5 +58,10 @@ public class User {
     public void addOrder (Order order) {
         orders.add(order);
         order.setUser(this);
+    }
+
+    public void removeOrder (Order order) {
+        orders.remove(order);
+        order.setUser(null);
     }
 }

@@ -6,7 +6,9 @@ import com.study.springstudy.dto.OrderResponse;
 import com.study.springstudy.dto.UserCreateRequest;
 import com.study.springstudy.dto.UserResponse;
 import com.study.springstudy.dto.UserUpdateRequest;
+import com.study.springstudy.exception.OrderNotFoundException;
 import com.study.springstudy.exception.UserNotFoundException;
+import com.study.springstudy.repository.OrderRepository;
 import com.study.springstudy.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,9 +23,11 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
-    public UserService(UserRepository userRepository){
+    public UserService(UserRepository userRepository, OrderRepository orderRepository){
         this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
     }
 
     public UserResponse getUser(Long id) {
@@ -167,6 +171,21 @@ public class UserService {
                 .orElseThrow(UserNotFoundException::new);
 
         userRepository.deleteById(id);
+    }
 
+    @Transactional
+    public void removeUserOrder(Long userId, Long orderId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(OrderNotFoundException::new);
+
+        if (!userId.equals(order.getUser().getId())) {
+            throw new IllegalArgumentException(
+                    "해당 사용자의 주문이 아닙니다."
+            );
+        }
+
+        user.removeOrder(order);
     }
 }
