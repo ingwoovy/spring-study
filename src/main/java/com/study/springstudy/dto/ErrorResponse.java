@@ -1,12 +1,16 @@
 package com.study.springstudy.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.Map;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
 
     private int status;
     private String message;
-    Map<String, String> errors;
+    private Map<String, String> errors;
+
 
     public ErrorResponse(int status, String message,Map<String,String> errors) {
         this.status = status;

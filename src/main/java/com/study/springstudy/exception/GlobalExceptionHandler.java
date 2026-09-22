@@ -15,21 +15,33 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFound(
+    public ResponseEntity<ErrorResponse> handleUserNotFound(
             UserNotFoundException e
     ) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                404,
+                e.getMessage(),
+                null
+        );
+
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(e.getMessage());
+                .body(errorResponse);
     }
 
     @ExceptionHandler(OrderNotFoundException.class)
-    public ResponseEntity<String> handleOrderNotFound(
+    public ResponseEntity<ErrorResponse> handleOrderNotFound(
             OrderNotFoundException e
     ) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                404,
+                e.getMessage(),
+                null
+        );
+
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(e.getMessage());
+                .body(errorResponse);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -57,11 +69,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(OrderAccessDeniedException.class)
-    public ResponseEntity<String> handleOrderAccessDenied(
+    public ResponseEntity<ErrorResponse> handleOrderAccessDenied(
             OrderAccessDeniedException e
     ) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                400,
+                e.getMessage(),
+                null
+        );
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(e.getMessage());
+                .body(errorResponse);
     }
 }
