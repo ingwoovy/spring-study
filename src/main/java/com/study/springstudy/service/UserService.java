@@ -6,6 +6,7 @@ import com.study.springstudy.dto.OrderResponse;
 import com.study.springstudy.dto.UserCreateRequest;
 import com.study.springstudy.dto.UserResponse;
 import com.study.springstudy.dto.UserUpdateRequest;
+import com.study.springstudy.exception.OrderAccessDeniedException;
 import com.study.springstudy.exception.OrderNotFoundException;
 import com.study.springstudy.exception.UserNotFoundException;
 import com.study.springstudy.repository.OrderRepository;
@@ -181,9 +182,7 @@ public class UserService {
                 .orElseThrow(OrderNotFoundException::new);
 
         if (!userId.equals(order.getUser().getId())) {
-            throw new IllegalArgumentException(
-                    "해당 사용자의 주문이 아닙니다."
-            );
+            throw new OrderAccessDeniedException();
         }
 
         user.removeOrder(order);

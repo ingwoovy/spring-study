@@ -55,4 +55,13 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errorResponse);
     }
+
+    @ExceptionHandler(OrderAccessDeniedException.class)
+    public ResponseEntity<String> handleOrderAccessDenied(
+            OrderAccessDeniedException e
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(e.getMessage());
+    }
 }
