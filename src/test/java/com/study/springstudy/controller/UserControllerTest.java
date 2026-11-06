@@ -10,7 +10,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.study.springstudy.exception.UserNotFoundException;
 import org.springframework.http.MediaType;
+import tools.jackson.databind.ObjectMapper;
 
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -23,6 +25,8 @@ class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockitoBean
     private UserService userService;
@@ -60,6 +64,8 @@ class UserControllerTest {
     void createUserTest() throws Exception {
 
         // given
+        UserCreateRequest request = new UserCreateRequest("Kim",25);
+
         UserResponse response = new UserResponse(1L,"Kim",25);
 
         when(userService.createUser(any(UserCreateRequest.class)))
@@ -69,16 +75,29 @@ class UserControllerTest {
         mockMvc.perform(
                         post("/users")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                    {
-                        "name": "Kim",
-                        "age": 25
-                    }
-                    """)
+                                .content(objectMapper.writeValueAsString(request))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Kim"))
                 .andExpect(jsonPath("$.age").value(25));
+    }
+
+    @Test
+    void createUserValidationTest() throws Exception {
+
+        // given
+        UserCreateRequest request =
+                new UserCreateRequest("", -1);
+
+        // when & then
+        mockMvc.perform(
+                        post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(userService);
     }
 }
