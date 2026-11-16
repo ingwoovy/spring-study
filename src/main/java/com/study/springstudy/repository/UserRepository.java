@@ -11,4 +11,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByName(String name);
     List<User> findByAgeGreaterThanEqual(Integer age);
     List<User> findByNameAndAgeGreaterThanEqual(String name, Integer age);
+    boolean existsByEmail(String email);
 }

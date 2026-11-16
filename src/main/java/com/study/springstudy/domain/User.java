@@ -16,6 +16,11 @@ public class User {
     private String name;
     private int age;
 
+    @Column(unique = true)
+    private String email;
+
+    private String password;
+
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.PERSIST,
@@ -31,6 +36,13 @@ public class User {
         this.age = age;
     }
 
+    public User(String name,Integer age, String email, String password) {
+        this.name = name;
+        this.age = age;
+        this.email = email;
+        this.password = password;
+    }
+
     public Long getId() {
         return id;
     }
@@ -39,6 +51,12 @@ public class User {
     }
     public int getAge() {
         return age;
+    }
+    public String getEmail() {
+        return email;
+    }
+    public String getPassword() {
+        return password;
     }
 
     public List<Order> getOrders() {
