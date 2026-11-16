@@ -2,10 +2,12 @@ package com.study.springstudy.service;
 
 import com.study.springstudy.domain.User;
 import com.study.springstudy.dto.RegisterRequest;
+import com.study.springstudy.exception.InvalidCredentialsException;
 import com.study.springstudy.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.study.springstudy.dto.LoginRequest;
 
 @Service
 public class AuthService {
@@ -38,5 +40,21 @@ public class AuthService {
         );
 
         userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public void login(LoginRequest request) {
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new InvalidCredentialsException("이메일 또는 비밀번호가 올바르지 않습니다."));
+
+        boolean matches = passwordEncoder.matches(
+                request.getPassword(), user.getPassword()
+        );
+
+        if (!matches) {
+            throw new InvalidCredentialsException( "이메일 또는 비밀번호가 올바르지 않습니다.");
+        }
     }
 }

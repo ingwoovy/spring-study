@@ -8,7 +8,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.study.springstudy.domain.User;
-import com.study.springstudy.dto.RegisterRequest;import org.mockito.ArgumentCaptor;
+import com.study.springstudy.dto.RegisterRequest;
+import org.mockito.ArgumentCaptor;
+import com.study.springstudy.dto.LoginRequest;
+import java.util.Optional;
+import com.study.springstudy.exception.InvalidCredentialsException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -74,5 +78,86 @@ class AuthServiceTest {
 
         verify(userRepository, never()).save(any(User.class));
         verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    @Test
+    void loginSuccess() {
+
+        // given
+        LoginRequest request = new LoginRequest(
+                "hong@example.com",
+                "hello1234"
+        );
+
+        User user = new User(
+                "홍길동",
+                25,
+                "hong@example.com",
+                "encodedPassword"
+        );
+        when(userRepository.findByEmail("hong@example.com"))
+                .thenReturn(Optional.of(user));
+
+        when(passwordEncoder.matches("hello1234","encodedPassword"))
+                .thenReturn(true);
+
+        // when
+        authService.login(request);
+
+        // then
+        verify(passwordEncoder).matches(
+                "hello1234",
+                "encodedPassword"
+        );
+    }
+
+    @Test
+    void loginWrongPassword() {
+
+        // given
+        LoginRequest request = new LoginRequest(
+                "hong@example.com",
+                "wrong1234"
+        );
+        User user = new User(
+                "홍길동",
+                25,
+                "hong@example.com",
+                "encodedPassword"
+        );
+        when(userRepository.findByEmail("hong@example.com"))
+                .thenReturn(Optional.of(user));
+
+        when(passwordEncoder.matches("wrong1234","encodedPassword"))
+                .thenReturn(false);
+
+        // when & then
+        assertThrows(
+                InvalidCredentialsException.class,
+                () -> authService.login(request)
+        );
+    }
+
+    @Test
+    void loginUserNotFound() {
+
+        // given
+        LoginRequest request = new LoginRequest(
+                "unknown@example.com",
+                "hello1234"
+        );
+
+        when(userRepository.findByEmail("unknown@example.com"))
+                .thenReturn(Optional.empty());
+
+        // when & then
+        assertThrows(
+                InvalidCredentialsException.class,
+                () -> authService.login(request)
+        );
+        verify(passwordEncoder, never()).matches(
+                anyString(),
+                anyString()
+        );
     }
 }

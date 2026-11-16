@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                 .requestMatchers(HttpMethod.GET, "/users").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                 .anyRequest().authenticated()
         )
                 .httpBasic(Customizer.withDefaults());
