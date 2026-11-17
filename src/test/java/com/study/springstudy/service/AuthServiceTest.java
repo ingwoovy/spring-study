@@ -13,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import com.study.springstudy.dto.LoginRequest;
 import java.util.Optional;
 import com.study.springstudy.exception.InvalidCredentialsException;
+import com.study.springstudy.global.jwt.JwtUtil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -27,6 +28,9 @@ class AuthServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtUtil jwtUtil;
 
     @InjectMocks
     private AuthService authService;
@@ -101,14 +105,15 @@ class AuthServiceTest {
         when(passwordEncoder.matches("hello1234","encodedPassword"))
                 .thenReturn(true);
 
+        when(jwtUtil.generateToken("hong@example.com"))
+                .thenReturn("test.jwt.token");
+
         // when
-        authService.login(request);
+        String token = authService.login(request);
 
         // then
-        verify(passwordEncoder).matches(
-                "hello1234",
-                "encodedPassword"
-        );
+        assertEquals("test.jwt.token", token);
+        verify(jwtUtil).generateToken("hong@example.com");
     }
 
     @Test
@@ -136,6 +141,7 @@ class AuthServiceTest {
                 InvalidCredentialsException.class,
                 () -> authService.login(request)
         );
+        verify(jwtUtil, never()).generateToken(anyString());
     }
 
     @Test
@@ -159,5 +165,6 @@ class AuthServiceTest {
                 anyString(),
                 anyString()
         );
+        verify(jwtUtil, never()).generateToken(anyString());
     }
 }

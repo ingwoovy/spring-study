@@ -8,16 +8,19 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.study.springstudy.dto.LoginRequest;
+import com.study.springstudy.global.jwt.JwtUtil;
 
 @Service
 public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
     @Transactional
@@ -43,7 +46,7 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public void login(LoginRequest request) {
+    public String login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
@@ -56,5 +59,6 @@ public class AuthService {
         if (!matches) {
             throw new InvalidCredentialsException( "이메일 또는 비밀번호가 올바르지 않습니다.");
         }
+        return jwtUtil.generateToken(user.getEmail());
     }
 }

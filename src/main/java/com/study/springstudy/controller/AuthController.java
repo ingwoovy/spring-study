@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import com.study.springstudy.dto.RegisterRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import com.study.springstudy.dto.LoginResponse;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,10 +27,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Void> login(
+    public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest request
     ) {
-        authService.login(request);
-        return ResponseEntity.ok().build();
+        String token = authService.login(request);
+
+        LoginResponse response = new LoginResponse(token);
+
+        return ResponseEntity.ok(response);
     }
 }
