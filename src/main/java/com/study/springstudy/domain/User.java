@@ -21,6 +21,10 @@ public class User {
 
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role;
+
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.PERSIST,
@@ -41,6 +45,7 @@ public class User {
         this.age = age;
         this.email = email;
         this.password = password;
+        this.role = Role.ROLE_USER;
     }
 
     public Long getId() {
@@ -57,6 +62,9 @@ public class User {
     }
     public String getPassword() {
         return password;
+    }
+    public Role getRole() {
+        return role;
     }
 
     public List<Order> getOrders() {

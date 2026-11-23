@@ -15,6 +15,7 @@ import java.util.Collections;
 import org.springframework.security.core.context.SecurityContextHolder;
 import io.jsonwebtoken.JwtException;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -59,7 +60,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(
                                 user,
                                 null,
-                                Collections.emptyList()
+                                Collections.singletonList(
+                                        new SimpleGrantedAuthority(user.getRole().name())
+                                )
                         );
 
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
