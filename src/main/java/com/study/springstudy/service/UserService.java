@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.study.springstudy.exception.UserAccessDeniedException;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
 
-    public UserService(UserRepository userRepository, OrderRepository orderRepository){
+    public UserService(UserRepository userRepository, OrderRepository orderRepository) {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
     }
@@ -42,9 +43,9 @@ public class UserService {
         );
     }
 
-    public List<UserResponse> getAllUsers () {
+    public List<UserResponse> getAllUsers() {
         Sort sort = Sort.by(
-                    Sort.Direction.ASC,
+                Sort.Direction.ASC,
                 "age"
         );
 
@@ -70,10 +71,10 @@ public class UserService {
         Page<User> users = userRepository.findAll(pageable);
 
         return users.map(user -> new UserResponse(
-                        user.getId(),
-                        user.getName(),
-                        user.getAge()
-                ));
+                user.getId(),
+                user.getName(),
+                user.getAge()
+        ));
     }
 
     public List<UserResponse> getUserByName(String name) {
@@ -130,7 +131,10 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrderResponse> getUserOrders (Long id) {
+    public List<OrderResponse> getUserOrders(Long id, Long loginUserId) {
+
+        validateUserOwnership(id, loginUserId);
+
         User user = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -150,7 +154,10 @@ public class UserService {
     @Transactional
     public UserResponse updateUser(
             Long id,
-            UserUpdateRequest request) {
+            UserUpdateRequest request,
+            Long loginUserId) {
+
+        validateUserOwnership(id, loginUserId);
 
         User user = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
@@ -167,7 +174,10 @@ public class UserService {
         );
     }
 
-    public void deleteUser(Long id) {
+    public void deleteUser(Long id, Long loginUserId) {
+
+        validateUserOwnership(id, loginUserId);
+
         User user = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -175,7 +185,10 @@ public class UserService {
     }
 
     @Transactional
-    public void removeUserOrder(Long userId, Long orderId) {
+    public void removeUserOrder(Long userId, Long orderId, Long loginUserId) {
+
+        validateUserOwnership(userId, loginUserId);
+
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
         Order order = orderRepository.findById(orderId)
@@ -186,5 +199,14 @@ public class UserService {
         }
 
         user.removeOrder(order);
+    }
+
+    private void validateUserOwnership(
+            Long userId,
+            Long loginUserId
+    ) {
+        if (loginUserId == null || !loginUserId.equals(userId)) {
+            throw new UserAccessDeniedException();
+        }
     }
 }

@@ -14,7 +14,12 @@ import com.study.springstudy.dto.LoginRequest;
 import java.util.Optional;
 import com.study.springstudy.exception.InvalidCredentialsException;
 import com.study.springstudy.global.jwt.JwtUtil;
+import com.study.springstudy.exception.DuplicateEmailException;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
+import java.sql.SQLException;
 
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -56,7 +61,7 @@ class AuthServiceTest {
         ArgumentCaptor<User> captor =
                 ArgumentCaptor.forClass(User.class);
 
-        verify(userRepository).save(captor.capture());
+        verify(userRepository).saveAndFlush(captor.capture());
 
         User savedUser = captor.getValue();
 
@@ -77,10 +82,10 @@ class AuthServiceTest {
         when(userRepository.existsByEmail("hong@example.com"))
                 .thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(DuplicateEmailException.class,
                 () -> authService.register(request));
 
-        verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, never()).saveAndFlush(any(User.class));
         verify(passwordEncoder, never()).encode(anyString());
     }
 
@@ -166,5 +171,97 @@ class AuthServiceTest {
                 anyString()
         );
         verify(jwtUtil, never()).generateToken(anyString());
+    }
+
+    @Test
+    void registerDuplicateEmailFromDatabase() {
+
+        // given
+        RegisterRequest request = new RegisterRequest(
+                "홍길동",
+                25,
+                "hong@example.com",
+                "hello1234"
+        );
+
+        when(userRepository.existsByEmail("hong@example.com"))
+                .thenReturn(false);
+
+        when(passwordEncoder.encode("hello1234"))
+                .thenReturn("encodedPassword");
+
+        SQLException sqlException =
+                new SQLException("Unique violation", "23505");
+
+        ConstraintViolationException constraintException =
+                new ConstraintViolationException(
+                        "Constraint violation",
+                        sqlException,
+                        "uk_users_email"
+                );
+
+        DataIntegrityViolationException exception =
+                new DataIntegrityViolationException(
+                        "Data integrity violation",
+                        constraintException
+                );
+
+        when(userRepository.saveAndFlush(any(User.class)))
+                .thenThrow(exception);
+
+        // when & then
+        assertThrows(
+                DuplicateEmailException.class,
+                () -> authService.register(request)
+        );
+
+        verify(userRepository).saveAndFlush(any(User.class));
+    }
+
+    @Test
+    void registerOtherConstraintViolation() {
+
+        // given
+        RegisterRequest request = new RegisterRequest(
+                "홍길동",
+                25,
+                "hong@example.com",
+                "hello1234"
+        );
+
+        when(userRepository.existsByEmail("hong@example.com"))
+                .thenReturn(false);
+
+        when(passwordEncoder.encode("hello1234"))
+                .thenReturn("encodedPassword");
+
+        SQLException sqlException =
+                new SQLException("Unique violation", "23505");
+
+        ConstraintViolationException constraintException =
+                new ConstraintViolationException(
+                        "Constraint violation",
+                        sqlException,
+                        "users_pkey"
+                );
+
+        DataIntegrityViolationException exception =
+                new DataIntegrityViolationException(
+                        "Data integrity violation",
+                        constraintException
+                );
+
+        when(userRepository.saveAndFlush(any(User.class)))
+                .thenThrow(exception);
+
+        // when & then
+        DataIntegrityViolationException result = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> authService.register(request)
+        );
+
+        assertSame(exception, result);
+
+        verify(userRepository).saveAndFlush(any(User.class));
     }
 }

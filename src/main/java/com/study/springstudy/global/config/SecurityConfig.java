@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.http.HttpStatus;
 import jakarta.servlet.http.HttpServletResponse;
+import com.study.springstudy.global.security.SecurityErrorResponseWriter;
 
 @Configuration
 public class SecurityConfig {
@@ -52,10 +53,18 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            SecurityErrorResponseWriter.write(
+                                    response,
+                                    HttpStatus.UNAUTHORIZED.value(),
+                                    "인증이 필요합니다."
+                            );
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            SecurityErrorResponseWriter.write(
+                                    response,
+                                    HttpServletResponse.SC_FORBIDDEN,
+                                    "접근 권한이 없습니다."
+                            );
                         })
                 );
 

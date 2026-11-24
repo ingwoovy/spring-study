@@ -14,6 +14,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.ArgumentMatchers.any;
+import com.study.springstudy.exception.UserAccessDeniedException;
+import com.study.springstudy.dto.UserUpdateRequest;
+
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.util.Optional;
 
@@ -139,11 +143,81 @@ public class UserServiceTest {
         //when & then
         assertThrows(
                 OrderAccessDeniedException.class,
-                () -> userService.removeUserOrder(3L,2L)
+                () -> userService.removeUserOrder(3L,2L,3L)
         );
 
         //verify
         verify(userRepository).findById(3L);
         verify(orderRepository).findById(2L);
+    }
+
+    @Test
+    void getUserOrdersAccessDeniedTest() {
+
+        // when & then
+        assertThrows(
+                UserAccessDeniedException.class,
+                () -> userService.getUserOrders(1L, 2L)
+        );
+
+        verifyNoInteractions(userRepository, orderRepository);
+    }
+
+    @Test
+    void updateUserAccessDeniedTest() {
+
+        // given
+        UserUpdateRequest request =
+                new UserUpdateRequest();
+
+        // when & then
+        assertThrows(
+                UserAccessDeniedException.class,
+                () -> userService.updateUser(1L, request, 2L)
+        );
+
+        verifyNoInteractions(userRepository, orderRepository);
+    }
+
+    @Test
+    void deleteUserAccessDeniedTest() {
+
+        // when & then
+        assertThrows(
+                UserAccessDeniedException.class,
+                () -> userService.deleteUser(1L, 2L)
+        );
+
+        verifyNoInteractions(userRepository, orderRepository);
+    }
+
+    @Test
+    void removeUserOrderAccessDeniedTest() {
+
+        // when & then
+        assertThrows(
+                UserAccessDeniedException.class,
+                () -> userService.removeUserOrder(1L, 20L, 2L)
+        );
+
+        verifyNoInteractions(userRepository, orderRepository);
+    }
+
+    @Test
+    void getOwnUserOrdersTest() {
+
+        // given
+        User user = new User(1L, "Kim", 25);
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+        // when
+        var response = userService.getUserOrders(1L, 1L);
+
+        // then
+        assertEquals(0, response.size());
+
+        verify(userRepository).findById(1L);
     }
 }

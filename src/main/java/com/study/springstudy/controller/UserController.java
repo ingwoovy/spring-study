@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
+import com.study.springstudy.domain.User;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.List;
 
@@ -63,8 +65,9 @@ public class UserController {
     }
 
     @GetMapping("/users/{id}/orders")
-    public List<OrderResponse> getUserOrders (@PathVariable Long id) {
-        return userService.getUserOrders(id);
+    public List<OrderResponse> getUserOrders (@PathVariable Long id,
+                                              @AuthenticationPrincipal User loginUser) {
+        return userService.getUserOrders(id, loginUser.getId());
     }
 
     @PostMapping("/users")
@@ -81,25 +84,27 @@ public class UserController {
     @PatchMapping("/users/{id}")
     public UserResponse updateUser(
             @PathVariable Long id,
-            @Valid
-            @RequestBody UserUpdateRequest request
+            @Valid @RequestBody UserUpdateRequest request,
+            @AuthenticationPrincipal User loginUser
     ) {
-        UserResponse response = userService.updateUser(id, request);
+        UserResponse response = userService.updateUser(id, request,loginUser.getId());
 
         return response;
     }
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id,
+                                           @AuthenticationPrincipal User loginUser) {
+        userService.deleteUser(id, loginUser.getId());
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/users/{userId}/orders/{orderId}")
     public ResponseEntity<Void> removeUserOrder(
             @PathVariable Long userId,
-            @PathVariable Long orderId
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal User loginUser
     ) {
-        userService.removeUserOrder(userId,orderId);
+        userService.removeUserOrder(userId,orderId,loginUser.getId());
         return ResponseEntity.noContent().build();
     }
 }

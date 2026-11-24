@@ -8,14 +8,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+
 import java.io.IOException;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
 import java.util.Collections;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import io.jsonwebtoken.JwtException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import com.study.springstudy.global.security.SecurityErrorResponseWriter;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -42,7 +47,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (token.isBlank()) {
                 SecurityContextHolder.clearContext();
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+                SecurityErrorResponseWriter.write(
+                        response,
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        "유효하지 않은 인증 토큰입니다."
+                );
+
                 return;
             }
 
@@ -71,11 +82,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             } catch (JwtException | InvalidCredentialsException | IllegalArgumentException e) {
                 SecurityContextHolder.clearContext();
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+                SecurityErrorResponseWriter.write(
+                        response,
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        "유효하지 않은 인증 토큰입니다."
+                );
+
                 return;
+
             }
         }
-
         filterChain.doFilter(request, response);
     }
 }
+

@@ -9,6 +9,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.study.springstudy.dto.LoginRequest;
 import com.study.springstudy.global.jwt.JwtUtil;
+import com.study.springstudy.exception.DuplicateEmailException;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.postgresql.util.PSQLException;
+import org.postgresql.util.ServerErrorMessage;
 
 @Service
 public class AuthService {
@@ -29,7 +34,7 @@ public class AuthService {
         boolean exists = userRepository.existsByEmail(request.getEmail());
 
         if (exists) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            throw new DuplicateEmailException();
         }
 
         String encodedPassword =
@@ -42,7 +47,14 @@ public class AuthService {
                 encodedPassword
         );
 
-        userRepository.save(user);
+        try {
+            userRepository.saveAndFlush(user);
+        } catch (DataIntegrityViolationException e) {
+            if (isDuplicateEmailViolation(e)) {
+                throw new DuplicateEmailException();
+            }
+            throw e;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -60,5 +72,32 @@ public class AuthService {
             throw new InvalidCredentialsException( "이메일 또는 비밀번호가 올바르지 않습니다.");
         }
         return jwtUtil.generateToken(user.getEmail());
+    }
+
+    private boolean isDuplicateEmailViolation(Throwable e) {
+
+        Throwable cause = e;
+
+        while (cause != null) {
+
+            if (cause instanceof ConstraintViolationException exception) {
+                if ("23505".equals(exception.getSQLState())
+                        && "uk_users_email".equals(exception.getConstraintName())) {
+                    return true;
+                }
+            }
+            if (cause instanceof PSQLException exception) {
+
+                ServerErrorMessage error = exception.getServerErrorMessage();
+
+                if ("23505".equals(exception.getSQLState())
+                        && error != null
+                        && "uk_users_email".equals(error.getConstraint())) {
+                    return true;
+                }
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 }

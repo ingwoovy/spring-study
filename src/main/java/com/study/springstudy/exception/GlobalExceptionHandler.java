@@ -73,13 +73,13 @@ public class GlobalExceptionHandler {
             OrderAccessDeniedException e
     ) {
         ErrorResponse errorResponse = new ErrorResponse(
-                400,
+                403,
                 e.getMessage(),
                 null
         );
 
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(HttpStatus.FORBIDDEN)
                 .body(errorResponse);
     }
 
@@ -94,6 +94,36 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateEmail(
+            DuplicateEmailException e
+    ) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                409,
+                e.getMessage(),
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(UserAccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleUserAccessDenied(
+            UserAccessDeniedException e
+    ) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                403,
+                e.getMessage(),
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
                 .body(errorResponse);
     }
 }
