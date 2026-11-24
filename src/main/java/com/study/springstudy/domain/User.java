@@ -1,7 +1,7 @@
 package com.study.springstudy.domain;
 
 import jakarta.persistence.*;
-
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +24,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @OneToMany(
             mappedBy = "user",
@@ -65,6 +68,9 @@ public class User {
     }
     public Role getRole() {
         return role;
+    }
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
     public List<Order> getOrders() {
